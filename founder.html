@@ -327,6 +327,51 @@
     }
     .reveal.visible { opacity: 1; transform: translateY(0); }
 
+    /* PROMPT SECTION */
+    .prompt-box {
+      background: #0d0b09;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px;
+      padding: 24px;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px; color: #c8bfb4;
+      line-height: 1.8;
+      white-space: pre-wrap;
+      word-break: break-word;
+      position: relative;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .prompt-box::-webkit-scrollbar { width: 4px; }
+    .prompt-box::-webkit-scrollbar-track { background: transparent; }
+    .prompt-box::-webkit-scrollbar-thumb { background: var(--muted2); border-radius: 4px; }
+
+    .copy-prompt {
+      display: inline-flex; align-items: center; gap: 8px;
+      margin-top: 16px;
+      background: rgba(204,120,92,0.1);
+      border: 1px solid var(--border);
+      border-radius: 4px; padding: 12px 24px;
+      font-family: 'Syne', sans-serif;
+      font-size: 13px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--coral);
+      cursor: pointer; transition: all 0.2s;
+      width: fit-content;
+    }
+    .copy-prompt:hover { background: rgba(204,120,92,0.2); }
+    .copy-prompt.copied { color: #28c840; border-color: rgba(40,200,64,0.4); background: rgba(40,200,64,0.08); }
+
+    .no-claudecode-tag {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 100px; padding: 6px 16px;
+      font-size: 11px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 24px;
+    }
+
     @media (max-width: 768px) {
       .roles-grid { grid-template-columns: 1fr; }
       .skill-item { grid-template-columns: 1fr; gap: 8px; }
@@ -484,6 +529,50 @@
   </section>
 
   <div class="divider"></div>
+
+  <!-- PROMPT DIRECTO -->
+  <section class="section">
+    <div class="no-claudecode-tag">¿Sin Claude Code?</div>
+    <p class="section-label reveal">Para cualquier IA</p>
+    <h2 class="section-title reveal">Copiá el prompt.<br/>Pegalo en <em style="font-style:italic;color:var(--coral)">ChatGPT,<br/>Claude o Gemini.</em></h2>
+
+    <p class="reveal" style="font-size:15px;color:var(--muted);line-height:1.7;max-width:560px;margin-bottom:32px">
+      No necesitás instalar nada. Este prompt convierte cualquier IA en tu equipo de trabajo.
+      Completá los brackets con tu info y pegalo al inicio de cada sesión.
+    </p>
+
+    <div class="prompt-box reveal" id="prompt-text">Sos mi equipo completo como solo founder. Tenés cuatro roles:
+
+CTO — cuando te muestre código o una decisión técnica, dame un veredicto directo: listo para producción, qué arreglar primero, o replantear. Criticar lo importante, ignorar lo menor.
+
+CMO — cuando te pida el brief de la semana, generame una pieza principal de contenido basada en mi progreso real, una secundaria, qué NO publicar y la métrica que me dice si funcionó.
+
+Chief of Staff — cuando te pida el estado o el plan de la semana, dame un dashboard con mis proyectos activos (etapa + momentum), blockers, decisiones pendientes y la única tarea con la que empezar.
+
+Pre-lanzamiento — cuando te diga que estoy listo para lanzar, haceme un checklist binario: flujo principal funciona, tengo al menos 1 canal de distribución, sé cómo hablar con los primeros usuarios. Veredicto: SHIP o NO SHIP.
+
+Reglas:
+- Máximo 3 tareas por día cuando planifiques
+- Si tengo más de 2 proyectos activos, avisame y decime cuál pausar
+- Nunca romantizar el progreso — solo decirme qué falta
+- Un proyecto a la vez, no listas de 10 cosas
+
+Contexto de mi situación actual:
+- Proyecto: [describí tu proyecto en 1 frase]
+- Etapa: [idea / build / validando / lanzado]
+- Mayor bloqueo ahora mismo: [qué te frena]
+- Métrica que más importa esta semana: [cuál es]</div>
+
+    <button class="copy-prompt reveal" onclick="copyPrompt(this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+      </svg>
+      Copiar prompt completo
+    </button>
+  </section>
+
+  <div class="divider"></div>
   <footer>
     <div class="footer-brand">Adrian <span>Benages</span></div>
     <div class="footer-links">
@@ -504,6 +593,18 @@
       });
     }, { threshold: 0.1 });
     reveals.forEach(el => io.observe(el));
+
+    function copyPrompt(btn) {
+      const text = document.getElementById('prompt-text').innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = '¡Copiado!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copiar prompt completo';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
 
     function copyCode(btn, text) {
       navigator.clipboard.writeText(text).then(() => {
