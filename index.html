@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>El Prompt de Onboarding — Enseñándote Claude desde 0</title>
+  <meta name="description" content="El prompt que le enseña a Claude quién sos. Una vez. Para siempre." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --coral:    #cc785c;
+      --coral-lt: #d4896a;
+      --coral-dk: #b85e42;
+      --bg:       #0a0908;
+      --bg2:      #111009;
+      --bg3:      #181512;
+      --border:   rgba(204,120,92,0.18);
+      --text:     #f0ebe4;
+      --muted:    #6b6258;
+      --muted2:   #4a423b;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Noise overlay ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.028;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 40px;
+      background: linear-gradient(180deg, rgba(10,9,8,0.95) 0%, transparent 100%);
+      backdrop-filter: blur(2px);
+    }
+
+    .nav-series {
+      font-size: 11px; font-weight: 700; letter-spacing: 4px;
+      text-transform: uppercase; color: var(--coral);
+    }
+
+    .nav-day {
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    .nav-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--muted2);
+    }
+    .nav-dot.active { background: var(--coral); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 120px 40px 80px;
+      max-width: 900px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: rgba(204,120,92,0.1);
+      border: 1px solid var(--border);
+      border-radius: 100px; padding: 8px 18px;
+      font-size: 11px; font-weight: 700; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--coral);
+      margin-bottom: 40px;
+      width: fit-content;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .hero-tag::before {
+      content: '';
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--coral);
+      animation: pulse 2s ease infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.7); }
+    }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(52px, 8vw, 96px);
+      line-height: 0.95;
+      letter-spacing: -2px;
+      color: var(--text);
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+
+    h1 em {
+      font-style: italic;
+      color: var(--coral);
+    }
+
+    .hero-sub {
+      margin-top: 32px;
+      font-size: 18px; font-weight: 400; line-height: 1.6;
+      color: var(--muted);
+      max-width: 560px;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+
+    .hero-sub strong { color: var(--text); font-weight: 600; }
+
+    .hero-cta {
+      margin-top: 48px;
+      display: flex; align-items: center; gap: 20px;
+      animation: fadeUp 0.6s 0.3s ease both;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--coral);
+      color: #fff; font-family: 'Syne', sans-serif;
+      font-size: 14px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; text-decoration: none;
+      padding: 16px 32px; border-radius: 4px;
+      border: none; cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .btn-primary:hover { background: var(--coral-dk); transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-ghost {
+      font-size: 13px; font-weight: 600; color: var(--muted);
+      text-decoration: none; letter-spacing: 0.5px;
+      transition: color 0.2s;
+    }
+    .btn-ghost:hover { color: var(--text); }
+
+    /* ── DIVIDER ── */
+    .divider {
+      width: 100%; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      margin: 0 auto;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .section {
+      max-width: 900px; margin: 0 auto;
+      padding: 100px 40px;
+    }
+
+    .section-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 4px;
+      text-transform: uppercase; color: var(--coral);
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(32px, 5vw, 52px);
+      line-height: 1.1; letter-spacing: -1px;
+      margin-bottom: 60px;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 2px;
+    }
+
+    .step {
+      background: var(--bg3);
+      border: 1px solid var(--bg3);
+      padding: 36px 32px;
+      position: relative;
+      transition: border-color 0.2s;
+    }
+    .step:hover { border-color: var(--border); }
+
+    .step-num {
+      font-family: 'DM Serif Display', serif;
+      font-size: 64px; line-height: 1;
+      color: rgba(204,120,92,0.15);
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .step-title {
+      font-size: 16px; font-weight: 700;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+
+    .step-desc {
+      font-size: 14px; font-weight: 400; line-height: 1.6;
+      color: var(--muted);
+    }
+
+    /* ── BLOQUES ── */
+    .blocks-grid {
+      display: flex; flex-direction: column; gap: 2px;
+      margin-top: 16px;
+    }
+
+    .block-item {
+      display: flex; align-items: flex-start; gap: 20px;
+      background: var(--bg3); padding: 24px 28px;
+      border: 1px solid var(--bg3);
+      transition: border-color 0.2s, background 0.2s;
+      cursor: default;
+    }
+    .block-item:hover {
+      border-color: var(--border);
+      background: rgba(204,120,92,0.04);
+    }
+
+    .block-num {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--coral), var(--coral-dk));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 900; color: #fff;
+      flex-shrink: 0; margin-top: 2px;
+      box-shadow: 0 4px 12px rgba(204,120,92,0.35);
+    }
+
+    .block-title {
+      font-size: 15px; font-weight: 700; color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .block-qs {
+      font-size: 13px; color: var(--muted); line-height: 1.6;
+    }
+
+    /* ── PROMPT BOX ── */
+    .prompt-section {
+      max-width: 900px; margin: 0 auto;
+      padding: 0 40px 120px;
+    }
+
+    .prompt-header {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg3);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-bottom: none;
+      padding: 16px 24px;
+      border-radius: 12px 12px 0 0;
+    }
+
+    .prompt-title {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13px; font-weight: 600; color: var(--muted);
+      font-family: 'DM Mono', monospace;
+    }
+
+    .prompt-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-r { background: #ff5f57; }
+    .dot-y { background: #febc2e; }
+    .dot-g { background: #28c840; }
+
+    .copy-btn {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(204,120,92,0.12);
+      border: 1px solid rgba(204,120,92,0.3);
+      border-radius: 6px; padding: 8px 16px;
+      font-family: 'Syne', sans-serif;
+      font-size: 12px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--coral);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .copy-btn:hover {
+      background: rgba(204,120,92,0.22);
+      border-color: var(--coral);
+    }
+    .copy-btn.copied {
+      background: rgba(40,200,64,0.12);
+      border-color: rgba(40,200,64,0.4);
+      color: #28c840;
+    }
+
+    .copy-icon { width: 14px; height: 14px; }
+
+    .prompt-body {
+      background: #0d0b09;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 0 0 12px 12px;
+      padding: 32px 28px;
+      overflow-x: auto;
+    }
+
+    .prompt-body pre {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px; line-height: 1.8;
+      color: #c8bfb4;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .prompt-body .c-label {
+      color: var(--coral); font-weight: 500;
+    }
+    .prompt-body .c-heading {
+      color: #e8ddd5; font-weight: 500;
+    }
+    .prompt-body .c-muted {
+      color: var(--muted2);
+    }
+    .prompt-body .c-accent {
+      color: #9ecfb0;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--bg3);
+      padding: 40px;
+      max-width: 900px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: gap;
+      gap: 20px;
+    }
+
+    .footer-brand {
+      font-family: 'DM Serif Display', serif;
+      font-size: 18px; color: var(--text);
+    }
+
+    .footer-brand span { color: var(--coral); font-style: italic; }
+
+    .footer-links {
+      display: flex; gap: 24px;
+    }
+
+    .footer-links a {
+      font-size: 12px; font-weight: 600; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--muted);
+      text-decoration: none; transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--coral); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal {
+      opacity: 0; transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      nav { padding: 16px 20px; }
+      .hero, .section, .prompt-section { padding-left: 20px; padding-right: 20px; }
+      .hero-cta { flex-direction: column; align-items: flex-start; }
+      footer { padding: 32px 20px; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <span class="nav-series">Enseñándote Claude desde 0</span>
+    <div class="nav-day">
+      <div class="nav-dot active"></div>
+      <div class="nav-dot active"></div>
+      <div class="nav-dot"></div>
+      <div class="nav-dot"></div>
+      <div class="nav-dot"></div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-tag">Día 2 de 5 · Serie Claude</div>
+
+    <h1>El prompt<br/>que le enseña<br/>a Claude <em>quién sos.</em></h1>
+
+    <p class="hero-sub">
+      Pegalo una vez. Claude te hace preguntas en <strong>5 bloques</strong>.
+      Al final genera un archivo con tu perfil completo y lo guarda en tu proyecto.
+      Desde ahí, cada sesión arranca sabiendo quién sos.
+    </p>
+
+    <div class="hero-cta">
+      <a href="#prompt" class="btn-primary">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M2 8h12M9 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Ir al prompt
+      </a>
+      <a href="#como-funciona" class="btn-ghost">¿Cómo funciona? →</a>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- CÓMO FUNCIONA -->
+  <section class="section" id="como-funciona">
+    <p class="section-label reveal">Cómo funciona</p>
+    <h2 class="section-title reveal">Tres pasos.<br/>Una vez.</h2>
+
+    <div class="steps">
+      <div class="step reveal">
+        <span class="step-num">01</span>
+        <p class="step-title">Copiás el prompt</p>
+        <p class="step-desc">Un click. El texto completo va a tu portapapeles, listo para pegar en Claude.</p>
+      </div>
+      <div class="step reveal">
+        <span class="step-num">02</span>
+        <p class="step-title">Claude te pregunta</p>
+        <p class="step-desc">5 bloques de preguntas. Respondés como si hablaras con alguien nuevo. Sin tecnicismos.</p>
+      </div>
+      <div class="step reveal">
+        <span class="step-num">03</span>
+        <p class="step-title">Tu perfil queda guardado</p>
+        <p class="step-desc">Claude genera <code style="font-family:'DM Mono',monospace;font-size:12px;color:var(--coral)">mi-perfil.md</code> y lo guarda en tu proyecto. Cada sesión arranca con contexto.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- BLOQUES -->
+  <section class="section">
+    <p class="section-label reveal">Los 5 bloques</p>
+    <h2 class="section-title reveal">Qué te va<br/>a preguntar Claude.</h2>
+
+    <div class="blocks-grid">
+      <div class="block-item reveal">
+        <div class="block-num">1</div>
+        <div>
+          <p class="block-title">Quién sos</p>
+          <p class="block-qs">Tu nombre · en qué trabajás o estudiás · qué querés lograr en los próximos 3-6 meses</p>
+        </div>
+      </div>
+      <div class="block-item reveal">
+        <div class="block-num">2</div>
+        <div>
+          <p class="block-title">Cómo pensás</p>
+          <p class="block-qs">¿Respuestas cortas o desarrolladas? · ¿Analogías o ejemplos? · ¿Qué te molesta de otras IAs?</p>
+        </div>
+      </div>
+      <div class="block-item reveal">
+        <div class="block-num">3</div>
+        <div>
+          <p class="block-title">Cómo trabajás</p>
+          <p class="block-qs">Modo creativo o ejecutor · herramientas que usás · mayor problema con el tiempo</p>
+        </div>
+      </div>
+      <div class="block-item reveal">
+        <div class="block-num">4</div>
+        <div>
+          <p class="block-title">Qué sabés y qué no</p>
+          <p class="block-qs">Áreas que dominás · áreas donde sos principiante · temas donde la IA te falló antes</p>
+        </div>
+      </div>
+      <div class="block-item reveal">
+        <div class="block-num">5</div>
+        <div>
+          <p class="block-title">Preferencias de colaboración</p>
+          <p class="block-qs">¿Decidís vos o que decida Claude? · ¿Qué tan directo querés que sea? · ¿Qué nunca debe asumir?</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- PROMPT -->
+  <div class="prompt-section" id="prompt" style="padding-top: 100px;">
+    <p class="section-label reveal" style="margin-bottom:20px">El prompt completo</p>
+    <h2 class="section-title reveal" style="margin-bottom:40px">Copiá y pegá<br/>en Claude.</h2>
+
+    <div class="reveal">
+      <div class="prompt-header">
+        <div class="prompt-title">
+          <div class="prompt-dot dot-r"></div>
+          <div class="prompt-dot dot-y"></div>
+          <div class="prompt-dot dot-g"></div>
+          <span style="margin-left:8px">prompt-onboarding.md</span>
+        </div>
+        <button class="copy-btn" id="copyBtn" onclick="copyPrompt()">
+          <svg class="copy-icon" viewBox="0 0 16 16" fill="none">
+            <rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <span id="copyText">Copiar</span>
+        </button>
+      </div>
+      <div class="prompt-body">
+        <pre id="promptContent"><span class="c-muted">Sos un asistente de onboarding. Tu trabajo es conocerme bien
+para poder ayudarme de forma más eficiente en el futuro.
+
+Vas a hacerme preguntas en bloques. Esperá mi respuesta antes
+de avanzar al siguiente bloque. No hagas más de 3 preguntas
+por turno. Cuando termines todas las preguntas, generá un
+archivo con mi perfil completo.</span>
+
+<span class="c-muted">---</span>
+
+<span class="c-label">BLOQUE 1 — Quién sos</span>
+<span class="c-muted">Preguntame:</span>
+1. ¿Cómo te llamás y en qué trabajás o en qué estás enfocado ahora mismo?
+2. ¿Cuál es el proyecto o problema más importante que tenés en este momento?
+3. ¿Qué querés lograr en los próximos 3-6 meses?
+
+<span class="c-muted">---</span>
+
+<span class="c-label">BLOQUE 2 — Cómo pensás</span>
+<span class="c-muted">Preguntame:</span>
+1. ¿Preferís que te dé respuestas cortas y directas, o explicaciones más desarrolladas con contexto?
+2. Cuando no entendés algo, ¿preferís que te lo explique con una analogía, con un ejemplo concreto, o paso a paso técnico?
+3. ¿Hay algún estilo de respuesta que te moleste o que hayas odiado de otras IAs?
+
+<span class="c-muted">---</span>
+
+<span class="c-label">BLOQUE 3 — Cómo trabajás</span>
+<span class="c-muted">Preguntame:</span>
+1. ¿Trabajás más en modo creativo (generar ideas, escribir, diseñar) o en modo ejecutor (programar, sistematizar, resolver problemas concretos)?
+2. ¿Cuál es tu mayor problema con el tiempo o la productividad?
+3. ¿Qué herramientas usás más: Notion, Obsidian, Google Docs, código, otra cosa?
+
+<span class="c-muted">---</span>
+
+<span class="c-label">BLOQUE 4 — Qué sabés y qué no</span>
+<span class="c-muted">Preguntame:</span>
+1. ¿Qué áreas dominás bien y donde no necesitás mucha explicación?
+2. ¿En qué área sos principiante o querés aprender más?
+3. ¿Hay algún tema donde hayas tenido malas experiencias con consejos de IA que resultaron incorrectos o poco útiles?
+
+<span class="c-muted">---</span>
+
+<span class="c-label">BLOQUE 5 — Preferencias de colaboración</span>
+<span class="c-muted">Preguntame:</span>
+1. ¿Preferís que tome decisiones por vos cuando hay varias opciones, o que te presente las opciones y vos elegís?
+2. ¿Qué tan directo querés que sea cuando algo que proponés no te conviene?
+3. ¿Hay algo que NUNCA debería asumir sin preguntarte primero?
+
+<span class="c-muted">---</span>
+
+<span class="c-heading">Una vez que respondas los 5 bloques, hacé lo siguiente:</span>
+
+<span class="c-accent">1. Resumí todo lo que aprendiste en una sección "Perfil del usuario".
+2. Generá un archivo con esta estructura:</span>
+
+<span class="c-muted">---
+name: mi-perfil
+description: Perfil personal de [nombre] — contexto, preferencias
+  de trabajo, estilo de comunicación y áreas de expertise. Cargar
+  este archivo cuando el usuario pida ayuda personalizada, cuando
+  mencione su nombre, o cuando diga "cargá mi perfil".
+---</span>
+
+<span class="c-heading"># Perfil de [nombre]
+
+## Quién soy</span>
+[síntesis de quién es, qué hace, qué quiere lograr]
+
+<span class="c-heading">## Cómo pienso y aprendo</span>
+[estilo de pensamiento, cómo prefiere que le expliquen]
+
+<span class="c-heading">## Cómo trabajo</span>
+[modo creativo/ejecutor, herramientas, productividad]
+
+<span class="c-heading">## Lo que sé y lo que no</span>
+[áreas de expertise, áreas de aprendizaje, dónde la IA falló antes]
+
+<span class="c-heading">## Reglas de colaboración</span>
+[preferencias de tono, autonomía, qué nunca asumir]
+
+<span class="c-heading">## Proyectos activos</span>
+[proyecto principal + objetivo de 3-6 meses]
+
+<span class="c-heading">## Palabras ban — qué NO hacer al hablar conmigo</span>
+[lista de lo que le molesta de las IAs]
+
+<span class="c-muted">---</span>
+
+<span class="c-accent">Guardá el archivo como `mi-perfil.md` en mi proyecto de Claude
+y confirmá la ruta donde lo guardaste.</span>
+
+<span class="c-muted">---</span>
+
+<span class="c-label">Empezá ahora con el Bloque 1.</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="divider"></div>
+  <footer>
+    <div class="footer-brand">Adrian <span>Benages</span></div>
+    <div class="footer-links">
+      <a href="https://tiktok.com/@adrianbenages" target="_blank">TikTok</a>
+      <a href="https://www.linkedin.com/in/adrianbenages" target="_blank">LinkedIn</a>
+    </div>
+  </footer>
+
+  <script>
+    // ── Reveal on scroll ──
+    const reveals = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) {
+          setTimeout(() => e.target.classList.add('visible'), i * 60);
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    reveals.forEach(el => io.observe(el));
+
+    // ── Copy prompt ──
+    function copyPrompt() {
+      const raw = `Sos un asistente de onboarding. Tu trabajo es conocerme bien para poder ayudarme de forma más eficiente en el futuro.
+
+Vas a hacerme preguntas en bloques. Esperá mi respuesta antes de avanzar al siguiente bloque. No hagas más de 3 preguntas por turno. Cuando termines todas las preguntas, generá un archivo con mi perfil completo.
+
+---
+
+BLOQUE 1 — Quién sos
+Preguntame:
+1. ¿Cómo te llamás y en qué trabajás o en qué estás enfocado ahora mismo?
+2. ¿Cuál es el proyecto o problema más importante que tenés en este momento?
+3. ¿Qué querés lograr en los próximos 3-6 meses?
+
+---
+
+BLOQUE 2 — Cómo pensás
+Preguntame:
+1. ¿Preferís que te dé respuestas cortas y directas, o explicaciones más desarrolladas con contexto?
+2. Cuando no entendés algo, ¿preferís que te lo explique con una analogía, con un ejemplo concreto, o paso a paso técnico?
+3. ¿Hay algún estilo de respuesta que te moleste o que hayas odiado de otras IAs?
+
+---
+
+BLOQUE 3 — Cómo trabajás
+Preguntame:
+1. ¿Trabajás más en modo creativo (generar ideas, escribir, diseñar) o en modo ejecutor (programar, sistematizar, resolver problemas concretos)?
+2. ¿Cuál es tu mayor problema con el tiempo o la productividad?
+3. ¿Qué herramientas usás más: Notion, Obsidian, Google Docs, código, otra cosa?
+
+---
+
+BLOQUE 4 — Qué sabés y qué no
+Preguntame:
+1. ¿Qué áreas dominás bien y donde no necesitás mucha explicación?
+2. ¿En qué área sos principiante o querés aprender más?
+3. ¿Hay algún tema donde hayas tenido malas experiencias con consejos de IA que resultaron incorrectos o poco útiles?
+
+---
+
+BLOQUE 5 — Preferencias de colaboración
+Preguntame:
+1. ¿Preferís que tome decisiones por vos cuando hay varias opciones, o que te presente las opciones y vos elegís?
+2. ¿Qué tan directo querés que sea cuando algo que proponés no te conviene?
+3. ¿Hay algo que NUNCA debería asumir sin preguntarte primero?
+
+---
+
+Una vez que respondas los 5 bloques, hacé lo siguiente:
+
+1. Resumí todo lo que aprendiste en una sección "Perfil del usuario".
+2. Generá un archivo con esta estructura:
+
+---
+name: mi-perfil
+description: Perfil personal de [nombre] — contexto, preferencias de trabajo, estilo de comunicación y áreas de expertise. Cargar este archivo cuando el usuario pida ayuda personalizada, cuando mencione su nombre, o cuando diga "cargá mi perfil".
+---
+
+# Perfil de [nombre]
+
+## Quién soy
+[síntesis de quién es, qué hace, qué quiere lograr]
+
+## Cómo pienso y aprendo
+[estilo de pensamiento, cómo prefiere que le expliquen]
+
+## Cómo trabajo
+[modo creativo/ejecutor, herramientas, productividad]
+
+## Lo que sé y lo que no
+[áreas de expertise, áreas de aprendizaje, dónde la IA falló antes]
+
+## Reglas de colaboración
+[preferencias de tono, autonomía, qué nunca asumir]
+
+## Proyectos activos
+[proyecto principal + objetivo de 3-6 meses]
+
+## Palabras ban — qué NO hacer al hablar conmigo
+[lista de lo que le molesta de las IAs]
+
+---
+
+Guardá el archivo como \`mi-perfil.md\` en mi proyecto de Claude y confirmá la ruta donde lo guardaste.
+
+---
+
+Empezá ahora con el Bloque 1.`;
+
+      navigator.clipboard.writeText(raw).then(() => {
+        const btn = document.getElementById('copyBtn');
+        const txt = document.getElementById('copyText');
+        btn.classList.add('copied');
+        txt.textContent = '¡Copiado!';
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          txt.textContent = 'Copiar';
+        }, 2500);
+      });
+    }
+  </script>
+</body>
+</html>
